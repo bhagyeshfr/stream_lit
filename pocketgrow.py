@@ -1,33 +1,80 @@
 import streamlit as st
+from datetime import datetime, timedelta
 
-def calculate_bmi(weight, height):
-    bmi = weight / (height ** 2)
-    return bmi
+# Function to calculate days remaining until the next billing cycle
+def days_until_next_billing(renewal_date):
+    today = datetime.today().date()
+    if renewal_date < today:
+        renewal_date = renewal_date + timedelta(days=30)
+    return (renewal_date - today).days
 
-def main():
-    st.title("BMI Calculator")
+# Function to check if the subscription is worth it
+def is_worth_it(cost, usage_per_week):
+    cost_per_use = cost / (usage_per_week * 4)  # Monthly usage
+    # If cost per use is more than INR 100 per hour, suggest not to buy
+    return cost_per_use <= 100
 
-    st.write("This application calculates your Body Mass Index (BMI) based on your weight and height.")
+# Streamlit UI
+st.title("Subscription Handling App")
 
-    weight = st.number_input("Enter your weight (in kilograms):", min_value=0.0, step=0.1)
-    height = st.number_input("Enter your height (in meters):", min_value=0.0, step=0.01)
+st.sidebar.header("Add a New Subscription")
 
-    if st.button("Calculate BMI"):
-        if weight > 0 and height > 0:
-            bmi = calculate_bmi(weight, height)
-            st.success(f"Your BMI is: {bmi:.2f}")
+# Inputs for new subscription
+name = st.sidebar.text_input("Subscription Name")
+cost = st.sidebar.number_input("Monthly Cost (INR)", min_value=0)
+renewal_date = st.sidebar.date_input("Next Billing Date")
+usage_per_week = st.sidebar.slider("Usage per Week (in hours)", 0, 40, 5)  # User input for usage
 
-            if bmi < 18.5:
-                st.info("You are underweight.")
-            elif 18.5 <= bmi < 24.9:
-                st.info("You have a normal weight.")
-            elif 25 <= bmi < 29.9:
-                st.info("You are overweight.")
-            else:
-                st.info("You are obese.")
+# List to hold subscription details
+if "subscriptions" not in st.session_state:
+    st.session_state.subscriptions = []
+
+# Button to add subscription
+if st.sidebar.button("Add Subscription"):
+    if name and cost > 0 and renewal_date:
+        st.session_state.subscriptions.append({
+            "name": name,
+            "cost": cost,
+            "renewal_date": renewal_date,
+            "usage_per_week": usage_per_week
+        })
+        st.sidebar.success(f"Added {name} subscription!")
+    else:
+        st.sidebar.error("Please fill all fields!")
+
+# Display all subscriptions
+st.header("Your Subscriptions")
+total_cost = 0
+suggestions = {"keep": [], "reconsider": []}
+
+if st.session_state.subscriptions:
+    for sub in st.session_state.subscriptions:
+        st.write(f"**{sub['name']}**")
+        st.write(f"Cost: INR {sub['cost']}")
+        st.write(f"Next Billing Date: {sub['renewal_date'].strftime('%d %B, %Y')}")
+        days_left = days_until_next_billing(sub['renewal_date'])
+        st.write(f"Days until next billing: {days_left} days")
+        
+        # Suggest whether to keep or reconsider
+        if is_worth_it(sub['cost'], sub['usage_per_week']):
+            st.write("✅ **This subscription is worth it based on your usage.**")
+            suggestions["keep"].append(sub['name'])
         else:
-            st.error("Please enter valid values for weight and height.")
+            st.write("❌ **You might want to reconsider this subscription.**")
+            suggestions["reconsider"].append(sub['name'])
+        
+        st.write("---")
+        total_cost += sub['cost']
 
-if __name__ == "__main__":
-    main()
+    st.write(f"**Total Monthly Cost: INR {total_cost}**")
 
+    st.header("Monthly Recommendations")
+    st.write("### Subscriptions to Keep:")
+    for item in suggestions["keep"]:
+        st.write(f"- {item}")
+
+    st.write("### Subscriptions to Reconsider:")
+    for item in suggestions["reconsider"]:
+        st.write(f"- {item}")
+else:
+    st.write("No subscriptions added yet.")
