@@ -18,6 +18,10 @@ def is_worth_it(cost, daily_usage_hours, daily_usage_minutes):
     cost_per_hour = cost / monthly_usage
     return cost_per_hour <= 100  # Worth it if cost per hour is less than or equal to INR 100
 
+# Initialize session state to store subscriptions
+if "subscriptions" not in st.session_state:
+    st.session_state.subscriptions = []
+
 # Streamlit UI
 st.title("Subscription Handling App")
 
@@ -29,10 +33,6 @@ cost = st.sidebar.number_input("Monthly Cost (INR)", min_value=0)
 renewal_date = st.sidebar.date_input("Next Billing Date", min_value=datetime.today().date())
 daily_usage_hours = st.sidebar.slider("Daily Usage Hours", 0, 24, 1)
 daily_usage_minutes = st.sidebar.slider("Daily Usage Minutes", 0, 59, 0)
-
-# Initialize session state to store subscriptions
-if "subscriptions" not in st.session_state:
-    st.session_state.subscriptions = []
 
 # Check if the subscription name already exists
 def name_exists(name):
@@ -54,6 +54,11 @@ if st.sidebar.button("Add Subscription"):
             st.sidebar.success(f"Added {name} subscription!")
     else:
         st.sidebar.error("Please fill all fields!")
+
+# Button to clear all subscriptions
+if st.sidebar.button("Clear All Subscriptions"):
+    st.session_state.subscriptions = []
+    st.sidebar.success("All subscriptions cleared!")
 
 # Display all subscriptions
 st.header("Your Subscriptions")
