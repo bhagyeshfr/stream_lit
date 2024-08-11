@@ -1,41 +1,57 @@
 import streamlit as st
+from datetime import datetime, timedelta
 
-# Sample content data (In a real app, this would come from APIs or databases)
-content_data = {
-    "Technology": [
-        {"title": "AI in 2024: What to Expect", "url": "https://example.com/ai2024", "image_url": "https://example.com/ai_image.jpg"},
-        {"title": "Top 10 Programming Languages", "url": "https://example.com/programming_languages", "image_url": "https://example.com/programming_image.jpg"},
-    ],
-    "Health": [
-        {"title": "10 Tips for a Healthier Lifestyle", "url": "https://example.com/healthy_lifestyle", "image_url": "https://example.com/health_image.jpg"},
-        {"title": "Mental Health Awareness", "url": "https://example.com/mental_health", "image_url": "https://example.com/mental_health_image.jpg"},
-    ],
-    "Entertainment": [
-        {"title": "Top Movies to Watch in 2024", "url": "https://example.com/top_movies", "image_url": "https://example.com/movies_image.jpg"},
-        {"title": "The Rise of Indie Music", "url": "https://example.com/indie_music", "image_url": "https://example.com/music_image.jpg"},
-    ],
-    "Finance": [
-        {"title": "Best Investment Strategies for 2024", "url": "https://example.com/investment_strategies", "image_url": "https://example.com/finance_image.jpg"},
-        {"title": "Understanding Cryptocurrency", "url": "https://example.com/cryptocurrency", "image_url": "https://example.com/crypto_image.jpg"},
-    ]
-}
+# Function to calculate days remaining until the next billing cycle
+def days_until_next_billing(renewal_date):
+    today = datetime.today().date()
+    if renewal_date < today:
+        renewal_date = renewal_date + timedelta(days=30)
+    return (renewal_date - today).days
+
+# Function to display subscription details
+def display_subscription(name, cost, renewal_date):
+    st.write(f"**{name}**")
+    st.write(f"Cost: INR {cost}")
+    st.write(f"Next Billing Date: {renewal_date.strftime('%d %B, %Y')}")
+    days_left = days_until_next_billing(renewal_date)
+    st.write(f"Days until next billing: {days_left} days")
+    st.write("---")
 
 # Streamlit UI
-st.title("Content Curator")
+st.title("Media Subscription Manager")
 
-# User Preferences
-st.write("Select your content preferences:")
-preferences = st.multiselect("Content Categories:", list(content_data.keys()))
+st.sidebar.header("Add a New Subscription")
 
-if st.button("Show Curated Feed"):
-    if preferences:
-        st.write("### Your Curated Content Feed:")
-        for category in preferences:
-            st.write(f"#### {category}")
-            for item in content_data[category]:
-                st.image(item["image_url"], caption=item["title"], use_column_width=True)
-                st.write(f"[Read more]({item['url']})")
-                st.write("---")
+# Inputs for new subscription
+name = st.sidebar.text_input("Subscription Name")
+cost = st.sidebar.number_input("Monthly Cost (INR)", min_value=0)
+renewal_date = st.sidebar.date_input("Next Billing Date")
+
+# List to hold subscription details
+if "subscriptions" not in st.session_state:
+    st.session_state.subscriptions = []
+
+# Button to add subscription
+if st.sidebar.button("Add Subscription"):
+    if name and cost > 0 and renewal_date:
+        st.session_state.subscriptions.append({
+            "name": name,
+            "cost": cost,
+            "renewal_date": renewal_date
+        })
+        st.sidebar.success(f"Added {name} subscription!")
     else:
-        st.write("Please select at least one category to see your curated feed.")
+        st.sidebar.error("Please fill all fields!")
+
+# Display all subscriptions
+st.header("Your Subscriptions")
+total_cost = 0
+if st.session_state.subscriptions:
+    for sub in st.session_state.subscriptions:
+        display_subscription(sub["name"], sub["cost"], sub["renewal_date"])
+        total_cost += sub["cost"]
+
+    st.write(f"**Total Monthly Cost: INR {total_cost}**")
+else:
+    st.write("No subscriptions added yet.")
 
