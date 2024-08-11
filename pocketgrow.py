@@ -10,9 +10,11 @@ def days_until_next_billing(renewal_date):
 
 # Function to check if the subscription is worth it
 def is_worth_it(cost, daily_usage):
-    weekly_usage = daily_usage * 7  # Total hours used in a week
-    monthly_usage = weekly_usage * 4  # Approximate monthly usage
-    cost_per_hour = cost / monthly_usage  # Cost per hour of usage
+    if daily_usage < 0.5:  # Less than 30 minutes per day
+        return False
+    weekly_usage = daily_usage * 7
+    monthly_usage = weekly_usage * 4
+    cost_per_hour = cost / monthly_usage
     return cost_per_hour <= 100  # Worth it if cost per hour is less than or equal to INR 100
 
 # Streamlit UI
@@ -32,7 +34,7 @@ if "subscriptions" not in st.session_state:
 
 # Button to add subscription
 if st.sidebar.button("Add Subscription"):
-    if name and cost > 0 and renewal_date:
+    if name and cost >= 0 and renewal_date:
         st.session_state.subscriptions.append({
             "name": name,
             "cost": cost,
@@ -50,33 +52,41 @@ suggestions = {"keep": [], "reconsider": []}
 
 if st.session_state.subscriptions:
     for sub in st.session_state.subscriptions:
-        st.write(f"**{sub['name']}**")
-        st.write(f"Cost: INR {sub['cost']}")
-        st.write(f"Next Billing Date: {sub['renewal_date'].strftime('%d %B, %Y')}")
-        days_left = days_until_next_billing(sub['renewal_date'])
-        st.write(f"Days until next billing: {days_left} days")
-        
-        # Calculate usage
-        weekly_usage = sub['daily_usage'] * 7
-        monthly_usage = weekly_usage * 4
-        cost_per_hour = sub['cost'] / monthly_usage
-        
-        st.write(f"Daily Usage: {sub['daily_usage']} hours")
-        st.write(f"Weekly Usage: {weekly_usage} hours")
-        st.write(f"Monthly Usage: {monthly_usage} hours")
-        st.write(f"Cost per Hour: INR {cost_per_hour:.2f}")
-        
-        # Suggest whether to keep or reconsider
-        if is_worth_it(sub['cost'], sub['daily_usage']):
-            st.write("✅ **This subscription is worth it based on your usage.**")
-            suggestions["keep"].append(sub['name'])
+        # Ensure that all required keys are present
+        if all(key in sub for key in ["name", "cost", "renewal_date", "daily_usage"]):
+            st.write(f"**{sub['name']}**")
+            st.write(f"Cost: INR {sub['cost']}")
+            st.write(f"Next Billing Date: {sub['renewal_date'].strftime('%d %B, %Y')}")
+            days_left = days_until_next_billing(sub['renewal_date'])
+            st.write(f"Days until next billing: {days_left} days")
+            
+            # Calculate usage
+            daily_usage = sub['daily_usage']
+            weekly_usage = daily_usage * 7
+            monthly_usage = weekly_usage * 4
+            cost_per_hour = sub['cost'] / monthly_usage
+            
+            st.write(f"Daily Usage: {daily_usage} hours")
+            st.write(f"Weekly Usage: {weekly_usage} hours")
+            st.write(f"Monthly Usage: {monthly_usage} hours")
+            st.write(f"Cost per Hour: INR {cost_per_hour:.2f}")
+            
+            # Suggest whether to keep or reconsider
+            if daily_usage < 0.5:
+                st.write("❌ **You might want to reconsider this subscription as it's used less than 30 minutes per day.**")
+                suggestions["reconsider"].append(sub['name'])
+            elif is_worth_it(sub['cost'], daily_usage):
+                st.write("✅ **This subscription is worth it based on your usage.**")
+                suggestions["keep"].append(sub['name'])
+            else:
+                st.write("❌ **You might want to reconsider this subscription.**")
+                suggestions["reconsider"].append(sub['name'])
+            
+            st.write("---")
+            total_cost += sub['cost']
         else:
-            st.write("❌ **You might want to reconsider this subscription.**")
-            suggestions["reconsider"].append(sub['name'])
-        
-        st.write("---")
-        total_cost += sub['cost']
-
+            st.write("**Error: Missing data in subscription entry**")
+    
     st.write(f"**Total Monthly Cost: INR {total_cost}**")
 
     st.header("Monthly Recommendations")
