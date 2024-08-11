@@ -1,5 +1,6 @@
 import streamlit as st
-from datetime import datetime, timedelta
+import pandas as pd
+import matplotlib.pyplot as plt
 
 # Function to calculate days remaining until the next billing cycle
 def days_until_next_billing(renewal_date):
@@ -62,20 +63,16 @@ if st.sidebar.button("Clear All Subscriptions"):
 
 # Display all subscriptions
 st.header("Your Subscriptions")
-total_cost = 0
-suggestions = {"keep": [], "reconsider": []}
 
 if st.session_state.subscriptions:
+    total_cost = 0
+    suggestions = {"keep": [], "reconsider": []}
+    
+    subscription_data = []
+    
     for sub in st.session_state.subscriptions:
         # Ensure that all required keys are present
         if all(key in sub for key in ["name", "cost", "renewal_date", "daily_usage_hours", "daily_usage_minutes"]):
-            st.write(f"**{sub['name']}**")
-            st.write(f"Cost: INR {sub['cost']}")
-            st.write(f"Next Billing Date: {sub['renewal_date'].strftime('%d %B, %Y')}")
-            days_left = days_until_next_billing(sub['renewal_date'])
-            st.write(f"Days until next billing: {days_left} days")
-            
-            # Calculate usage
             daily_usage_hours = sub['daily_usage_hours']
             daily_usage_minutes = sub['daily_usage_minutes']
             total_daily_usage = daily_usage_hours + daily_usage_minutes / 60
@@ -83,38 +80,54 @@ if st.session_state.subscriptions:
             monthly_usage = weekly_usage * 4
             cost_per_hour = sub['cost'] / monthly_usage
             
-            st.write(f"Daily Usage: {daily_usage_hours} hours {daily_usage_minutes} minutes")
-            st.write(f"Weekly Usage: {weekly_usage} hours")
-            st.write(f"Monthly Usage: {monthly_usage} hours")
-            st.write(f"Cost per Hour: INR {cost_per_hour:.2f}")
+            # Append data for display
+            subscription_data.append({
+                "Name": sub['name'],
+                "Cost (INR)": sub['cost'],
+                "Next Billing Date": sub['renewal_date'].strftime('%d %B, %Y'),
+                "Daily Usage": f"{daily_usage_hours} hours {daily_usage_minutes} minutes",
+                "Weekly Usage (hours)": f"{weekly_usage:.2f}",
+                "Monthly Usage (hours)": f"{monthly_usage:.2f}",
+                "Cost per Hour (INR)": f"{cost_per_hour:.2f}"
+            })
             
             # Suggest whether to keep or reconsider
             if total_daily_usage < 0.5:
-                st.write("❌ **You might want to reconsider this subscription as it's used less than 30 minutes per day.**")
                 suggestions["reconsider"].append(sub['name'])
             elif is_worth_it(sub['cost'], daily_usage_hours, daily_usage_minutes):
-                st.write("✅ **This subscription is worth it based on your usage.**")
                 suggestions["keep"].append(sub['name'])
             else:
-                st.write("❌ **You might want to reconsider this subscription.**")
                 suggestions["reconsider"].append(sub['name'])
             
-            st.write("---")
             total_cost += sub['cost']
-        else:
-            st.write("**Error: Missing data in subscription entry**")
+    
+    # Display data in a DataFrame
+    st.dataframe(pd.DataFrame(subscription_data))
     
     st.write(f"**Total Monthly Cost: INR {total_cost}**")
 
     st.header("Monthly Recommendations")
+    
     if suggestions["keep"]:
-        st.write("### Subscriptions to Keep:")
+        st.markdown("### ✅ Subscriptions to Keep:")
         for item in suggestions["keep"]:
             st.write(f"- {item}")
 
     if suggestions["reconsider"]:
-        st.write("### Subscriptions to Reconsider:")
+        st.markdown("### ❌ Subscriptions to Reconsider:")
         for item in suggestions["reconsider"]:
             st.write(f"- {item}")
 else:
     st.write("No subscriptions added yet.")
+
+# Visualization
+if st.session_state.subscriptions:
+    # Plot cost per hour
+    cost_per_hour = [sub['cost'] / (sub['daily_usage_hours'] * 7 * 4 + sub['daily_usage_minutes'] / 60 * 7 * 4) for sub in st.session_state.subscriptions]
+    names = [sub['name'] for sub in st.session_state.subscriptions]
+    
+    fig, ax = plt.subplots()
+    ax.barh(names, cost_per_hour, color='skyblue')
+    ax.set_xlabel('Cost per Hour (INR)')
+    ax.set_title('Cost per Hour of Subscriptions')
+    st.pyplot(fig)
