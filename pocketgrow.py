@@ -8,22 +8,11 @@ def days_until_next_billing(renewal_date):
         renewal_date = renewal_date + timedelta(days=30)
     return (renewal_date - today).days
 
-# Function to display subscription details and cost-effectiveness
-def display_subscription(name, cost, renewal_date, usage_per_week):
-    st.write(f"**{name}**")
-    st.write(f"Cost: INR {cost}")
-    st.write(f"Next Billing Date: {renewal_date.strftime('%d %B, %Y')}")
-    days_left = days_until_next_billing(renewal_date)
-    st.write(f"Days until next billing: {days_left} days")
-    
-    # Determine if the subscription is worth keeping
+# Function to check if the subscription is worth it
+def is_worth_it(cost, usage_per_week):
     cost_per_use = cost / (usage_per_week * 4)  # Monthly usage
-    if cost_per_use > cost * 0.1:  # Arbitrary threshold for now
-        st.write(f"⚠️ **This subscription might not be worth keeping based on your usage!**")
-    else:
-        st.write(f"✅ **This subscription is cost-effective based on your usage.**")
-    
-    st.write("---")
+    # If cost per use is more than INR 100 per hour, suggest not to buy
+    return cost_per_use <= 100
 
 # Streamlit UI
 st.title("Media Subscription Manager")
@@ -58,10 +47,21 @@ st.header("Your Subscriptions")
 total_cost = 0
 if st.session_state.subscriptions:
     for sub in st.session_state.subscriptions:
-        display_subscription(sub["name"], sub["cost"], sub["renewal_date"], sub["usage_per_week"])
-        total_cost += sub["cost"]
+        st.write(f"**{sub['name']}**")
+        st.write(f"Cost: INR {sub['cost']}")
+        st.write(f"Next Billing Date: {sub['renewal_date'].strftime('%d %B, %Y')}")
+        days_left = days_until_next_billing(sub['renewal_date'])
+        st.write(f"Days until next billing: {days_left} days")
+        
+        # Suggest whether to keep or cancel
+        if is_worth_it(sub['cost'], sub['usage_per_week']):
+            st.write("✅ **This subscription is worth it based on your usage.**")
+        else:
+            st.write("❌ **You might want to reconsider this subscription.**")
+        
+        st.write("---")
+        total_cost += sub['cost']
 
     st.write(f"**Total Monthly Cost: INR {total_cost}**")
 else:
     st.write("No subscriptions added yet.")
-
