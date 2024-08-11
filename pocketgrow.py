@@ -9,11 +9,11 @@ def days_until_next_billing(renewal_date):
     return (renewal_date - today).days
 
 # Function to check if the subscription is worth it
-def is_worth_it(cost, usage_per_week):
-    if usage_per_week == 0:
-        return False  # If usage is 0, it's not worth it
-    cost_per_use = cost / (usage_per_week * 4)  # Monthly usage
-    return cost_per_use <= 100  # Worth it if cost per hour is less than or equal to INR 100
+def is_worth_it(cost, daily_usage):
+    weekly_usage = daily_usage * 7  # Total hours used in a week
+    monthly_usage = weekly_usage * 4  # Approximate monthly usage
+    cost_per_hour = cost / monthly_usage  # Cost per hour of usage
+    return cost_per_hour <= 100  # Worth it if cost per hour is less than or equal to INR 100
 
 # Streamlit UI
 st.title("Subscription Handling App")
@@ -24,7 +24,7 @@ st.sidebar.header("Add a New Subscription")
 name = st.sidebar.text_input("Subscription Name")
 cost = st.sidebar.number_input("Monthly Cost (INR)", min_value=0)
 renewal_date = st.sidebar.date_input("Next Billing Date", min_value=datetime.today().date())
-usage_per_week = st.sidebar.slider("Usage per Week (in hours)", 0, 168, 5)
+daily_usage = st.sidebar.slider("Daily Usage (in hours)", 0, 24, 1)  # Daily usage in hours
 
 # Initialize session state to store subscriptions
 if "subscriptions" not in st.session_state:
@@ -37,7 +37,7 @@ if st.sidebar.button("Add Subscription"):
             "name": name,
             "cost": cost,
             "renewal_date": renewal_date,
-            "usage_per_week": usage_per_week
+            "daily_usage": daily_usage
         })
         st.sidebar.success(f"Added {name} subscription!")
     else:
@@ -56,8 +56,18 @@ if st.session_state.subscriptions:
         days_left = days_until_next_billing(sub['renewal_date'])
         st.write(f"Days until next billing: {days_left} days")
         
+        # Calculate usage
+        weekly_usage = sub['daily_usage'] * 7
+        monthly_usage = weekly_usage * 4
+        cost_per_hour = sub['cost'] / monthly_usage
+        
+        st.write(f"Daily Usage: {sub['daily_usage']} hours")
+        st.write(f"Weekly Usage: {weekly_usage} hours")
+        st.write(f"Monthly Usage: {monthly_usage} hours")
+        st.write(f"Cost per Hour: INR {cost_per_hour:.2f}")
+        
         # Suggest whether to keep or reconsider
-        if is_worth_it(sub['cost'], sub['usage_per_week']):
+        if is_worth_it(sub['cost'], sub['daily_usage']):
             st.write("✅ **This subscription is worth it based on your usage.**")
             suggestions["keep"].append(sub['name'])
         else:
@@ -81,3 +91,4 @@ if st.session_state.subscriptions:
             st.write(f"- {item}")
 else:
     st.write("No subscriptions added yet.")
+
