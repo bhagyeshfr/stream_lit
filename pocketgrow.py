@@ -1,3 +1,5 @@
+pip install matplotlib
+pip install streamlit pandas
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -82,5 +84,5 @@ elif options == "Learning Resources":
     - **Websites:** [Investopedia](https://www.investopedia.com), [Moneycontrol](https://www.moneycontrol.com).
     - **Online Courses:** "Personal Finance 101" on Coursera, "Introduction to Investing" on Udemy.
     """)
-result = func()
+
 
