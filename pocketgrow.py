@@ -34,17 +34,24 @@ daily_usage_minutes = st.sidebar.slider("Daily Usage Minutes", 0, 59, 0)
 if "subscriptions" not in st.session_state:
     st.session_state.subscriptions = []
 
+# Check if the subscription name already exists
+def name_exists(name):
+    return any(sub['name'] == name for sub in st.session_state.subscriptions)
+
 # Button to add subscription
 if st.sidebar.button("Add Subscription"):
     if name and cost >= 0 and renewal_date:
-        st.session_state.subscriptions.append({
-            "name": name,
-            "cost": cost,
-            "renewal_date": renewal_date,
-            "daily_usage_hours": daily_usage_hours,
-            "daily_usage_minutes": daily_usage_minutes
-        })
-        st.sidebar.success(f"Added {name} subscription!")
+        if name_exists(name):
+            st.sidebar.error("Subscription with this name already exists!")
+        else:
+            st.session_state.subscriptions.append({
+                "name": name,
+                "cost": cost,
+                "renewal_date": renewal_date,
+                "daily_usage_hours": daily_usage_hours,
+                "daily_usage_minutes": daily_usage_minutes
+            })
+            st.sidebar.success(f"Added {name} subscription!")
     else:
         st.sidebar.error("Please fill all fields!")
 
