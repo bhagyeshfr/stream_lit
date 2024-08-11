@@ -24,4 +24,3 @@ elif options == "Track Savings":
     # Input fields for pocket money, expenses, and savings
     pocket_money = st.number_input("Monthly Pocket Money (in INR)", min_value=0.0, step=100.0)
     basic_expenses = st.number_input("Monthly Expenses (in INR)", min_value=0.0, step=
-
