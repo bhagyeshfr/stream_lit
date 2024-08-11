@@ -24,7 +24,7 @@ st.sidebar.header("Add a New Subscription")
 name = st.sidebar.text_input("Subscription Name")
 cost = st.sidebar.number_input("Monthly Cost (INR)", min_value=0)
 renewal_date = st.sidebar.date_input("Next Billing Date", min_value=datetime.today().date())
-usage_per_week = st.sidebar.slider("Usage per Week (in hours)", 0, 40, 5)
+usage_per_week = st.sidebar.slider("Usage per Week (in hours)", 0, 168, 5)
 
 # Initialize session state to store subscriptions
 if "subscriptions" not in st.session_state:
