@@ -1,8 +1,6 @@
-pip install matplotlib
-pip install streamlit pandas
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import matplotlib as plt
 
 # Title of the app
 st.title("Student Savings and Investment Guide")
@@ -84,5 +82,3 @@ elif options == "Learning Resources":
     - **Websites:** [Investopedia](https://www.investopedia.com), [Moneycontrol](https://www.moneycontrol.com).
     - **Online Courses:** "Personal Finance 101" on Coursera, "Introduction to Investing" on Udemy.
     """)
-
-
