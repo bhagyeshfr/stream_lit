@@ -26,11 +26,22 @@ name = st.sidebar.text_input("Subscription Name")
 cost = st.sidebar.number_input("Monthly Cost (INR)", min_value=0)
 renewal_date = st.sidebar.date_input("Next Billing Date", min_value=datetime.today().date())
 
-# Add info button next to "Daily Usage Hours"
-st.sidebar.write("Daily Usage Hours", help="Specify the average number of hours you use the app per day. You can check this on your phone by navigating to the screen time or usage statistics in the settings.")
+col1, col2 = st.sidebar.columns([4, 1])
+with col1:
+    daily_usage_hours = st.slider("Daily Usage Hours", 0, 24, 1)
+with col2:
+    if st.button("How to Find Daily Usage in Your Phone"):
+        st.info("### Finding Daily Usage on Your Phone\n\n"
+                "**For Android Users:**\n"
+                "1. Open the Settings app.\n"
+                "2. Go to 'Digital Wellbeing & Parental Controls'.\n"
+                "3. Tap on 'Dashboard' or 'Screen Time' to view your daily app usage.\n\n"
+                "**For iOS Users:**\n"
+                "1. Open the Settings app.\n"
+                "2. Tap 'Screen Time'.\n"
+                "3. Go to 'See All Activity' to view your daily app usage.")
 
-daily_usage_hours = st.sidebar.slider("Daily Usage Hours", 0, 24, 1)
-daily_usage_minutes = st.sidebar.slider("Daily Usage Minutes", 0, 59, 0)
+daily_usage_minutes = st.slider("Daily Usage Minutes", 0, 59, 0)
 
 # Check if the subscription name already exists
 def name_exists(name):
@@ -114,3 +125,14 @@ if st.session_state.subscriptions:
             st.write(f"- {item}")
 else:
     st.write("No subscriptions added yet.")
+
+# Visualization
+if st.session_state.subscriptions:
+    # Create a DataFrame for charting
+    chart_data = pd.DataFrame({
+        "Subscription": [sub['name'] for sub in st.session_state.subscriptions],
+        "Cost per Hour (INR)": [sub['cost'] / ((sub['daily_usage_hours'] * 7 * 4) + (sub['daily_usage_minutes'] / 60 * 7 * 4)) for sub in st.session_state.subscriptions]
+    })
+
+    # Display the bar chart using Streamlit's built-in function
+    st.bar_chart(chart_data.set_index("Subscription"))
