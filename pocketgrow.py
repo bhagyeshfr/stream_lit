@@ -2,12 +2,16 @@ import streamlit as st
 
 # Function to suggest areas based on input
 def suggest_areas(budget, bhk, carpet_area):
-    # Sample data for areas (you can replace this with actual data or logic)
+    # Mumbai areas data
     areas = {
-        "Area 1": {"price_per_sqft": 5000, "amenities": "Gym, Pool, Park", "types": [1, 2]},
-        "Area 2": {"price_per_sqft": 7500, "amenities": "Gym, Pool, Park, Clubhouse", "types": [2, 3]},
-        "Area 3": {"price_per_sqft": 10000, "amenities": "Gym, Pool, Park, Clubhouse, Parking", "types": [3, 4]},
-        "Area 4": {"price_per_sqft": 15000, "amenities": "Luxury Amenities, Security", "types": [2, 3, 4]},
+        "Andheri West": {"price_per_sqft": 25000, "amenities": "Gym, Pool, Park, Clubhouse, Parking", "types": [2, 3, 4]},
+        "Bandra West": {"price_per_sqft": 35000, "amenities": "Luxury Amenities, Security, Sea View", "types": [2, 3, 4]},
+        "Powai": {"price_per_sqft": 20000, "amenities": "Gym, Pool, Park, Lake View, Clubhouse", "types": [1, 2, 3]},
+        "Thane": {"price_per_sqft": 15000, "amenities": "Gym, Pool, Park, Clubhouse", "types": [1, 2, 3]},
+        "Borivali East": {"price_per_sqft": 18000, "amenities": "Gym, Park, Clubhouse, Parking", "types": [1, 2, 3]},
+        "Lower Parel": {"price_per_sqft": 30000, "amenities": "Luxury Amenities, Gym, Pool, Clubhouse, Parking", "types": [2, 3, 4]},
+        "Dadar": {"price_per_sqft": 28000, "amenities": "Gym, Pool, Park, Clubhouse, Parking", "types": [2, 3]},
+        "Navi Mumbai": {"price_per_sqft": 12000, "amenities": "Gym, Park, Clubhouse", "types": [1, 2]},
     }
 
     suggested_areas = []
@@ -20,7 +24,7 @@ def suggest_areas(budget, bhk, carpet_area):
     return suggested_areas
 
 # Streamlit UI
-st.title("Real Estate Finder")
+st.title("Mumbai Real Estate Finder")
 
 # User Inputs
 budget = st.number_input("Enter your budget (INR):", min_value=100000, step=10000)
@@ -30,7 +34,7 @@ carpet_area = st.number_input("Enter the carpet area required (in sq ft):", min_
 if st.button("Find Best Areas"):
     suggestions = suggest_areas(budget, bhk, carpet_area)
     if suggestions:
-        st.write("Based on your requirements, here are the best areas:")
+        st.write("Based on your requirements, here are the best areas in Mumbai:")
         for area, price, amenities in suggestions:
             st.write(f"**Area:** {area}")
             st.write(f"**Estimated Price:** {price} INR")
