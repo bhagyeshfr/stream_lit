@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Function to suggest areas based on input
-def suggest_areas(budget, bhk, carpet_area):
+def suggest_areas(price_min, price_max, bhk, carpet_area):
     # Mumbai areas data with images
     areas = {
         "Andheri West": {
@@ -58,7 +58,7 @@ def suggest_areas(budget, bhk, carpet_area):
     for area, details in areas.items():
         if bhk in details["types"]:
             total_price = details["price_per_sqft"] * carpet_area
-            if total_price <= budget:
+            if price_min <= total_price <= price_max:
                 suggested_areas.append((area, total_price, details["amenities"], details["image_url"]))
 
     return suggested_areas
@@ -67,12 +67,19 @@ def suggest_areas(budget, bhk, carpet_area):
 st.title("Mumbai Real Estate Finder")
 
 # User Inputs
-budget = st.number_input("Enter your budget (INR):", min_value=100000, step=10000)
+price_min, price_max = st.slider(
+    "Select the price range (INR):",
+    min_value=1000000, 
+    max_value=10000000, 
+    value=(2000000, 8000000),
+    step=100000
+)
+
 bhk = st.selectbox("Select the type of flat (BHK):", [1, 2, 3, 4])
 carpet_area = st.number_input("Enter the carpet area required (in sq ft):", min_value=100, step=10)
 
 if st.button("Find Best Areas"):
-    suggestions = suggest_areas(budget, bhk, carpet_area)
+    suggestions = suggest_areas(price_min, price_max, bhk, carpet_area)
     if suggestions:
         st.write("Based on your requirements, here are the best areas in Mumbai:")
         for area, price, amenities, image_url in suggestions:
