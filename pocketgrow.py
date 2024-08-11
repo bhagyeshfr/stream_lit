@@ -25,6 +25,10 @@ st.sidebar.header("Add a New Subscription")
 name = st.sidebar.text_input("Subscription Name")
 cost = st.sidebar.number_input("Monthly Cost (INR)", min_value=0)
 renewal_date = st.sidebar.date_input("Next Billing Date", min_value=datetime.today().date())
+
+# Add info button next to "Daily Usage Hours"
+st.sidebar.write("Daily Usage Hours", help="Specify the average number of hours you use the app per day. You can check this on your phone by navigating to the screen time or usage statistics in the settings.")
+
 daily_usage_hours = st.sidebar.slider("Daily Usage Hours", 0, 24, 1)
 daily_usage_minutes = st.sidebar.slider("Daily Usage Minutes", 0, 59, 0)
 
