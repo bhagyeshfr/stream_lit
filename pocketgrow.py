@@ -92,4 +92,57 @@ if st.session_state.subscriptions:
         monthly_usage = weekly_usage * 4
         cost_per_hour = sub['cost'] / monthly_usage
         
-        #
+        # Append data for display
+        subscription_data.append({
+            "Name": sub['name'],
+            "Cost (INR)": sub['cost'],
+            "Next Billing Date": sub['renewal_date'].strftime('%d %B, %Y'),
+            "Daily Usage": f"{daily_usage_hours} hours {daily_usage_minutes} minutes",
+            "Weekly Usage (hours)": f"{weekly_usage:.2f}",
+            "Monthly Usage (hours)": f"{monthly_usage:.2f}",
+            "Cost per Hour (INR)": f"{cost_per_hour:.2f}"
+        })
+        
+        # Suggest whether to keep or reconsider
+        if total_daily_usage < 0.5:
+            suggestions["reconsider"].append(sub['name'])
+        elif is_worth_it(sub['cost'], daily_usage_hours, daily_usage_minutes):
+            suggestions["keep"].append(sub['name'])
+        else:
+            suggestions["reconsider"].append(sub['name'])
+        
+        total_cost += sub['cost']
+    
+    # Display data in a DataFrame
+    st.dataframe(pd.DataFrame(subscription_data))
+    
+    st.write(f"*Total Monthly Cost: INR {total_cost}*")
+
+    st.header("Monthly Recommendations")
+    
+    if suggestions["keep"]:
+        st.markdown("### ✅ Subscriptions to Keep:")
+        for item in suggestions["keep"]:
+            st.write(f"- {item}")
+
+    if suggestions["reconsider"]:
+        st.markdown("### ❌ Subscriptions to Reconsider:")
+        for item in suggestions["reconsider"]:
+            st.write(f"- {item}")
+else:
+    st.write("No subscriptions added yet.")
+
+# Visualization
+if st.session_state.subscriptions:
+    # Create a DataFrame for charting
+    chart_data = pd.DataFrame({
+        "Subscription": [sub['name'] for sub in st.session_state.subscriptions],
+        "Cost per Hour (INR)": [
+            sub['cost'] / (
+                (sub['daily_usage_hours'] * 7 * 4) + (sub['daily_usage_minutes'] / 60 * 7 * 4)
+            ) for sub in st.session_state.subscriptions
+        ]
+    })
+
+    # Display the bar chart using Streamlit's built-in function
+    st.bar_chart(chart_data.set_index("Subscription"))
