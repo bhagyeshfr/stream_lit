@@ -1,82 +1,41 @@
 import streamlit as st
-from PIL import Image
 
-# Function to change language (example for English and Spanish)
-def change_language():
-    lang = st.sidebar.selectbox("Choose Language", ["English", "Spanish"])
-    return lang
+# Sample content data (In a real app, this would come from APIs or databases)
+content_data = {
+    "Technology": [
+        {"title": "AI in 2024: What to Expect", "url": "https://example.com/ai2024", "image_url": "https://example.com/ai_image.jpg"},
+        {"title": "Top 10 Programming Languages", "url": "https://example.com/programming_languages", "image_url": "https://example.com/programming_image.jpg"},
+    ],
+    "Health": [
+        {"title": "10 Tips for a Healthier Lifestyle", "url": "https://example.com/healthy_lifestyle", "image_url": "https://example.com/health_image.jpg"},
+        {"title": "Mental Health Awareness", "url": "https://example.com/mental_health", "image_url": "https://example.com/mental_health_image.jpg"},
+    ],
+    "Entertainment": [
+        {"title": "Top Movies to Watch in 2024", "url": "https://example.com/top_movies", "image_url": "https://example.com/movies_image.jpg"},
+        {"title": "The Rise of Indie Music", "url": "https://example.com/indie_music", "image_url": "https://example.com/music_image.jpg"},
+    ],
+    "Finance": [
+        {"title": "Best Investment Strategies for 2024", "url": "https://example.com/investment_strategies", "image_url": "https://example.com/finance_image.jpg"},
+        {"title": "Understanding Cryptocurrency", "url": "https://example.com/cryptocurrency", "image_url": "https://example.com/crypto_image.jpg"},
+    ]
+}
 
-# Function to send OTP (placeholder function)
-def send_otp(phone_number):
-    st.success(f"OTP sent to {phone_number}")
-    # You can implement the actual OTP sending logic here using an API service
+# Streamlit UI
+st.title("Content Curator")
 
-# Function to display products with images
-def display_products(products):
-    for product in products:
-        st.image(product['image'], width=200)
-        st.write(f"{product['name']}** - {product['price']}")
-        st.write(product['description'])
-        st.button("Add to Cart", key=product['id'])
+# User Preferences
+st.write("Select your content preferences:")
+preferences = st.multiselect("Content Categories:", list(content_data.keys()))
 
-# Function to suggest products based on user preferences
-def suggest_products(fashion_sense, products):
-    st.subheader(f"Suggestions based on your style: {fashion_sense}")
-    filtered_products = [p for p in products if fashion_sense.lower() in p['tags']]
-    display_products(filtered_products)
+if st.button("Show Curated Feed"):
+    if preferences:
+        st.write("### Your Curated Content Feed:")
+        for category in preferences:
+            st.write(f"#### {category}")
+            for item in content_data[category]:
+                st.image(item["image_url"], caption=item["title"], use_column_width=True)
+                st.write(f"[Read more]({item['url']})")
+                st.write("---")
+    else:
+        st.write("Please select at least one category to see your curated feed.")
 
-# Sample product data
-products = [
-    {
-        'id': 1,
-        'name': 'Stylish T-shirt',
-        'price': '$20',
-        'description': 'A cool and comfortable t-shirt.',
-        'image': 'tshirt.jpg',
-        'tags': 'casual'
-    },
-    {
-        'id': 2,
-        'name': 'Elegant Sandals',
-        'price': '$50',
-        'description': 'Elegant sandals perfect for summer.',
-        'image': 'sandals.jpg',
-        'tags': 'summer'
-    },
-    {
-        'id': 3,
-        'name': 'Smart Watch',
-        'price': '$150',
-        'description': 'A digital gadget to keep you connected.',
-        'image': 'watch.jpg',
-        'tags': 'digital'
-    },
-]
-
-# Main App
-def main():
-    st.title("Domain Fashion Online Store")
-
-    # Change Language
-    lang = change_language()
-
-    # User Input
-    name = st.text_input("Name")
-    phone_number = st.text_input("Phone Number")
-    address = st.text_area("Address")
-
-    if st.button("Send OTP"):
-        send_otp(phone_number)
-
-    # Fashion sense input
-    fashion_sense = st.selectbox("Select your fashion sense", ["Casual", "Formal", "Summer", "Digital"])
-
-    # Suggest products
-    suggest_products(fashion_sense, products)
-
-    # Display all products
-    st.subheader("Available Products")
-    display_products(products)
-
-if _name_ == "_main_":
-    main()
