@@ -30,7 +30,7 @@ col1, col2 = st.sidebar.columns([4, 1])
 with col1:
     daily_usage_hours = st.slider("Daily Usage Hours", 0, 24, 1)
 with col2:
-    if st.button("How to Find Daily Usage in Your Phone"):
+    if st.button("Info", key="usage_info"):
         st.info("### Finding Daily Usage on Your Phone\n\n"
                 "**For Android Users:**\n"
                 "1. Open the Settings app.\n"
